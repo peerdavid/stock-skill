@@ -14,6 +14,7 @@ var APP_ID = "amzn1.ask.skill.f3acff9f-f593-4793-9682-27b789533f6f";
  * The AlexaSkill prototype and helper functions
  */
 var AlexaSkill = require('./AlexaSkill');
+var http = require('http');
 
 /**
  * To read more about inheritance in JavaScript, see the link below.
@@ -57,12 +58,7 @@ Broker.prototype.intentHandlers = {
         var stockSlot = intent.slots.Stock;
 
         if(stockSlot && stockSlot.value){
-            stockValue = this.getStockInformation(stockSlot.value);
-            // tellWithCard(speechOutput, cardTitle, cardContent)
-            var speechOutput = "Die " + stockSlot.value + " aktie steht bei " + stockValue;
-            var cardTitle = stockSlot.value + " Stock";
-            var cardContent = stockValue;
-            response.tellWithCard(speechOutput, cardTitle, cardContent);
+            this.handleStockValue(response, stockSlot.value);
         } else {
             var speechOutput = "Frage nach einem Aktienkurs.";
             var repromptText = "Frage nach einem Aktienkurs.";
@@ -76,20 +72,75 @@ Broker.prototype.intentHandlers = {
 };
 
 
-Broker.prototype.getStockInformation = function (stock) {
-    if(stock === "microsoft"){
-        return "54$";
-    } else if (stock === "google"){
-        return "100$"
-    }
-    
-    return "34 $";
+Broker.prototype.handleStockValue = function (response, stockName) {
+    var onError = function(err){
+        response.tell("Ich konnte keine Informationen zu " + stockName + " finden.");
+    };
+
+    var self = this;
+    self.lookupSymbol(stockName, function(symbols){
+        var stockSymbol = symbols[0].Symbol; // ToDo: Aks which code, if there are more than one
+
+        self.lookupStockInfos(stockSymbol, function(stockInfos) {
+            var speechOutput = "Der Kurs der Aktie " + stockInfos.Name + " liegt bei " + stockInfos.LastPrice;
+            var cardTitle = "Aktie " + stockInfos.Name;
+            var cardContent = "Value = " + stockInfos.LastPrice;
+            response.tellWithCard(speechOutput, cardTitle, cardContent);
+        }, onError);
+    }, onError);
 }
 
 
-// Create the handler that responds to the Alexa Request.
+Broker.prototype.lookupSymbol = function(stockName, onResult, onError){
+    var url = "http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + stockName;
+    console.log("Reading smybol for stock name | Url: " + url);
+
+    http.get(url, function(res){
+        var body = '';
+
+        res.on('data', function(chunk){
+            body += chunk;
+        });
+
+        res.on('end', function(){
+            var symbols = JSON.parse(body);
+            console.log("Got symbol(s) | ", body);
+            onResult(symbols);
+        });
+    }).on('error', function(e){
+        console.log("Error reading symbols | ", e);
+        onError(e);
+    });
+}
+
+
+Broker.prototype.lookupStockInfos = function(stockSymbol, onResult, onError){
+    var url = "http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol=" + stockSymbol;
+    console.log("Reading stock value for symbol | Url: " + url);
+
+    http.get(url, function(res){
+        var body = '';
+
+        res.on('data', function(chunk){
+            body += chunk;
+        });
+
+        res.on('end', function(){
+            var stockInfos = JSON.parse(body);
+            console.log("Got stock infos | ", body);
+            onResult(stockInfos);
+        });
+    }).on('error', function(e){
+        console.log("Error reading stock infos | ", e);
+        onError(e);
+    });
+}
+
+
+/**
+ * Create the handler that responds to the Alexa Request.
+ */
 exports.handler = function (event, context) {
-    // Create an instance of the HelloWorld skill.
-    var helloWorld = new Broker();
-    helloWorld.execute(event, context);
+    var broker = new Broker();
+    broker.execute(event, context);
 };
