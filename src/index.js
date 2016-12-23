@@ -101,16 +101,24 @@ Broker.prototype.handleStockValue = function (response, stockName) {
 
         self.lookupStockInfos(stockSymbol.symbol, function(stockInfos) {
             if(stockInfos.Bid == null){
-                onError("No bid found for stock " + stockName + " with symbol " + stockSymbol.symbol);
-                return;
+                 var speechOutput = "Der letzte trading Wert der " + stockSymbol.typeDisp + " " + stockInfos.Name +
+                                    " vom " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime + 
+                                    " beträgt auf der Börse " + stockSymbol.exchDisp +
+                                    stockInfos.LastTradePriceOnly + " " + stockCurrency + " . \n";
+                
+                var cardTitle = "Aktie: " + stockInfos.Name + "(" + stockSymbol.exchDisp + ") am " + 
+                                stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;
+                var cardContent = stockInfos.LastTradePriceOnly + " " + stockCurrency;
+                response.tellWithCard(speechOutput, cardTitle, cardContent);
             }
 
-            // Return informations
+            // Return bid information
             var stockBid = self.convertToGermanNumber(stockInfos.Bid);
             var stockCurrency = self.convertToGermanCurrency(stockInfos.Currency);
             var speechOutput = "Auf der Börse " + stockSymbol.exchDisp + "beträgt der Wert der " + stockSymbol.typeDisp + " " 
                                 + stockInfos.Name + " " + stockBid + " " + stockCurrency + " . \n";
-            var cardTitle = "Aktie: " + stockInfos.Name + "(" + stockSymbol.exchDisp + ")";
+            var cardTitle = "Aktie: " + stockInfos.Name + "(" + stockSymbol.exchDisp + ") am " + 
+                            stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;
             var cardContent = stockBid + " " + stockInfos.Currency;
 
             response.tellWithCard(speechOutput, cardTitle, cardContent);
