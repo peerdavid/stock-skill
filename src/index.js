@@ -57,7 +57,14 @@ Broker.prototype.intentHandlers = {
         var stockSlot = intent.slots.Stock;
 
         if(stockSlot && stockSlot.value){
-            this.handleStockValue(response, stockSlot.value);
+            // Sometimes alexa hears I. B. M -> so we parse ALL of it before we use it...
+            var stockName = stockSlot.value.toString().split(". ").join("");
+
+            // We also remove all . -> it is not needed to find a stock
+            stockName = stockName.split(".").join(" ");
+
+            // Search for it now
+            this.handleStockValue(response, stockName);
         } else {
             response.tell("Frage nach einem Aktienkurs.");
         }
