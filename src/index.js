@@ -3,6 +3,8 @@
  * 
  * Author: Peer David
  * Date: 23.12.2016
+ * 
+ * Note: To download names of companies by industry:
  */
 
 /**
@@ -60,14 +62,12 @@ Broker.prototype.intentHandlers = {
         if(stockSlot && stockSlot.value){
             this.handleStockValue(response, stockSlot.value);
         } else {
-            var speechOutput = "Frage nach einem Aktienkurs.";
-            var repromptText = "Frage nach einem Aktienkurs.";
-            response.ask(speechOutput, repromptText);
+            response.tell("Frage nach einem Aktienkurs.");
         }
     },
 
     "AMAZON.HelpIntent": function (intent, session, response) {
-        response.ask("You can say hello to me!", "You can say hello to me!");
+        response.tell("Frage nach einem Aktienkurs.");
     }
 };
 
@@ -79,12 +79,14 @@ Broker.prototype.handleStockValue = function (response, stockName) {
 
     var self = this;
     self.lookupSymbol(stockName, function(symbols){
-        var stockSymbol = symbols[0].Symbol; // ToDo: Aks which code, if there are more than one
+        var stockSymbol = symbols[0].symbol;
+        var realName = symbols[0].name;
+        var exchDisp = symbols[0].exchDisp;
 
         self.lookupStockInfos(stockSymbol, function(stockInfos) {
-            var speechOutput = "Der Kurs der Aktie " + stockInfos.Name + " liegt bei " + stockInfos.LastPrice;
-            var cardTitle = "Aktie " + stockInfos.Name;
-            var cardContent = "Value = " + stockInfos.LastPrice;
+            var speechOutput = "Der Wert der Aktie " + stockInfos.Name + " liegt bei " + self.convertToGermanNumber(stockInfos.Bid) + ". \n";
+            var cardTitle = "Aktie " + realName;
+            var cardContent = "Value = " + realName;
             response.tellWithCard(speechOutput, cardTitle, cardContent);
         }, onError);
     }, onError);
@@ -92,7 +94,7 @@ Broker.prototype.handleStockValue = function (response, stockName) {
 
 
 Broker.prototype.lookupSymbol = function(stockName, onResult, onError){
-    var url = "http://dev.markitondemand.com/MODApis/Api/v2/Lookup/json?input=" + stockName;
+    var url = "http://d.yimg.com/autoc.finance.yahoo.com/autoc?query=" + encodeURIComponent(stockName) + "&region=1&lang=de";
     console.log("Reading smybol for stock name | Url: " + url);
 
     http.get(url, function(res){
@@ -105,7 +107,7 @@ Broker.prototype.lookupSymbol = function(stockName, onResult, onError){
         res.on('end', function(){
             var symbols = JSON.parse(body);
             console.log("Got symbol(s) | ", body);
-            onResult(symbols);
+            onResult(symbols.ResultSet.Result);
         });
     }).on('error', function(e){
         console.log("Error reading symbols | ", e);
@@ -115,7 +117,7 @@ Broker.prototype.lookupSymbol = function(stockName, onResult, onError){
 
 
 Broker.prototype.lookupStockInfos = function(stockSymbol, onResult, onError){
-    var url = "http://dev.markitondemand.com/MODApis/Api/v2/Quote/json?symbol=" + stockSymbol;
+    var url = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22" + stockSymbol + "%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys"
     console.log("Reading stock value for symbol | Url: " + url);
 
     http.get(url, function(res){
@@ -128,12 +130,17 @@ Broker.prototype.lookupStockInfos = function(stockSymbol, onResult, onError){
         res.on('end', function(){
             var stockInfos = JSON.parse(body);
             console.log("Got stock infos | ", body);
-            onResult(stockInfos);
+            onResult(stockInfos.query.results.quote);
         });
     }).on('error', function(e){
         console.log("Error reading stock infos | ", e);
         onError(e);
     });
+}
+
+
+Broker.prototype.convertToGermanNumber = function(num){
+    return num.toString().replace(".", ",");
 }
 
 

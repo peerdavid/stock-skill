@@ -1,3 +1,2 @@
-BrokerIntent Wie steht die {Stock} aktie
-BrokerIntent Wie hoch ist die {Stock} aktie
-BrokerIntent Wie hoch ist der {Stock}
+BrokerIntent Wie hoch ist der {Stock} Kurs
+BrokerIntent {Stock} Aktie
