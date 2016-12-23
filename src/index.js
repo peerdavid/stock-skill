@@ -101,13 +101,15 @@ Broker.prototype.handleStockValue = function (response, stockName) {
 
         self.lookupStockInfos(stockSymbol.symbol, function(stockInfos) {
             if(stockInfos.Bid == null){
-                 var speechOutput = "Der letzte trading Wert der " + stockSymbol.typeDisp + " " + stockInfos.Name +
+                var stockLastTradingPrice = self.convertToGermanNumber(stockInfos.LastTradePriceOnly);
+                var stockCurrency = self.convertToGermanCurrency(stockInfos.Currency);
+                var speechOutput = "Der letzte trading Wert der " + stockSymbol.typeDisp + " " + stockInfos.Name +
                                     " vom " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime + 
                                     " beträgt auf der Börse " + stockSymbol.exchDisp +
-                                    stockInfos.LastTradePriceOnly + " " + stockCurrency + " . \n";
+                                    stockLastTradingPrice + " " + stockCurrency + " . \n";
                 
                 var cardTitle = "Aktie: " + stockInfos.Name + "(" + stockSymbol.exchDisp + ")";
-                var cardContent = stockInfos.LastTradePriceOnly + " " + stockCurrency + " am " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;;
+                var cardContent = stockLastTradingPrice + " " + stockCurrency + " am " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;;
                 response.tellWithCard(speechOutput, cardTitle, cardContent);
             }
 
@@ -117,7 +119,7 @@ Broker.prototype.handleStockValue = function (response, stockName) {
             var speechOutput = "Auf der Börse " + stockSymbol.exchDisp + "beträgt der Wert der " + stockSymbol.typeDisp + " " 
                                 + stockInfos.Name + " " + stockBid + " " + stockCurrency + " . \n";
             var cardTitle = "Aktie: " + stockInfos.Name + "(" + stockSymbol.exchDisp + ")";
-            var cardContent = stockInfos.LastTradePriceOnly + " " + stockCurrency + " am " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;
+            var cardContent = stockBid + " " + stockCurrency + " am " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;
 
             response.tellWithCard(speechOutput, cardTitle, cardContent);
         }, onError);
