@@ -32,21 +32,20 @@ Broker.prototype.constructor = Broker;
 
 
 Broker.prototype.eventHandlers.onSessionStarted = function (sessionStartedRequest, session) {
-    console.log("HelloWorld onSessionStarted requestId: " + sessionStartedRequest.requestId
+    console.log("Broker onSessionStarted requestId: " + sessionStartedRequest.requestId
         + ", sessionId: " + session.sessionId);
     // any initialization logic goes here
 };
 
 
 Broker.prototype.eventHandlers.onLaunch = function (launchRequest, session, response) {
-    console.log("HelloWorld onLaunch requestId: " + launchRequest.requestId + ", sessionId: " + session.sessionId);
-    var speechOutput = "Willkommen, dein Broker hilft der gerne weiter. Frage nach einem Aktienkurs.";
-    response.tell(speechOutput);
+    console.log("Broker onLaunch requestId: " + launchRequest.requestId + ", sessionId: " + session.sessionId);
+    response.tell("Frage den broker nach einem Aktien kurs.");
 };
 
 
 Broker.prototype.eventHandlers.onSessionEnded = function (sessionEndedRequest, session) {
-    console.log("HelloWorld onSessionEnded requestId: " + sessionEndedRequest.requestId
+    console.log("Broker onSessionEnded requestId: " + sessionEndedRequest.requestId
         + ", sessionId: " + session.sessionId);
     // any cleanup logic goes here
 };
@@ -65,32 +64,48 @@ Broker.prototype.intentHandlers = {
     },
 
     "AMAZON.HelpIntent": function (intent, session, response) {
-        response.tell("Frage nach einem Aktienkurs.");
+        response.tell("Frage den broker nach einem Aktien kurs.");
     }
 };
 
 
 Broker.prototype.handleStockValue = function (response, stockName) {
     var onError = function(err){
-        response.tell("Ich konnte keine Informationen zu " + stockName + " finden.");
+        response.tell("Ich konnte keine Informationen für " + stockName + " finden.");
     };
 
     var self = this;
     self.lookupSymbol(stockName, function(symbols){
         if(symbols.length <= 0){
-            response.tell("Ich konnte die aktie " + stockName + " nicht finden.")
+            onError("No symbol found for stock " + stockName);
             return;
         }
 
-        var exchPrefers = ["NASDAQ", "NYSE", "TSE", "AEX", "Frankfurt"];
+        // Possible we have fonds etc.
+        symbols = self.filterStockOnly(symbols);
+        if(symbols.length <= 0){
+            onError("No symbol found for stock " + stockName);
+            return;
+        }
+
+        var exchPrefers = ["NASDAQ", "NYSE", "LSE", "Euronext", "XETRA", "Frankfurt", "Hamburg", "Stuttgart", "Wien", 
+                           "Berlin", "Schweiz", "CME", "TSE", "AEX", "AMEX", "SSE", "CBOT"];
         var stockSymbol = self.findPreferedSymbol(symbols, exchPrefers);
 
         self.lookupStockInfos(stockSymbol.symbol, function(stockInfos) {
-            var speechOutput = "Auf der Börse " + stockSymbol.exchDisp + "beträgt der Wert der Aktie " + stockInfos.Name + 
-                               " " + self.convertToGermanNumber(stockInfos.Bid) + " " + stockInfos.Currency + " . \n";
+            if(stockInfos.Bid == null){
+                onError("No bid found for stock " + stockName + " with symbol " + stockSymbol.symbol);
+                return;
+            }
 
-            var cardTitle = "Aktie " + stockInfos.Name + "(" + stockSymbol.exchDisp + ")";
-            var cardContent = self.convertToGermanNumber(stockInfos.Bid);
+            // Return informations
+            var stockBid = self.convertToGermanNumber(stockInfos.Bid);
+            var stockCurrency = self.convertToGermanCurrency(stockInfos.Currency);
+            var speechOutput = "Auf der Börse " + stockSymbol.exchDisp + "beträgt der Wert der " + stockSymbol.typeDisp + " " 
+                                + stockInfos.Name + " " + stockBid + " " + stockCurrency + " . \n";
+            var cardTitle = "Aktie: " + stockInfos.Name + "(" + stockSymbol.exchDisp + ")";
+            var cardContent = stockBid + " " + stockInfos.Currency;
+
             response.tellWithCard(speechOutput, cardTitle, cardContent);
         }, onError);
     }, onError);
@@ -100,13 +115,25 @@ Broker.prototype.handleStockValue = function (response, stockName) {
 Broker.prototype.findPreferedSymbol = function(symbols, exchPrefers){
     for(var i = 0; i < exchPrefers.length; i++){
         for(var j=0; j < symbols.length; j++){
-            if(exchPrefers[i] == symbols[j].exchDisp){
+            if(exchPrefers[i].toLowerCase() == symbols[j].exchDisp.toLowerCase()){
                 return symbols[j];
             }
         }
     }
 
     return symbols[0];
+}
+
+
+Broker.prototype.filterStockOnly = function(symbols){
+    var ret = []
+    for(var i = 0; i < symbols.length; i++){
+        if(symbols[i].typeDisp.toLowerCase() == "aktie"){
+            ret.push(symbols[i]);
+        }
+    }
+
+    return ret;
 }
 
 
@@ -157,7 +184,18 @@ Broker.prototype.lookupStockInfos = function(stockSymbol, onResult, onError){
 
 
 Broker.prototype.convertToGermanNumber = function(num){
-    return num.toString().replace(".", ",");
+    return parseFloat(num).toFixed(2).toString().replace(".", ",");
+}
+
+
+Broker.prototype.convertToGermanCurrency = function(currency){
+    if(currency.toLowerCase() == "usd"){
+        return "$";
+    } else if(currency.toLowerCase() == "eur"){
+        return " Euro";
+    }
+
+    return currency;
 }
 
 
