@@ -1,1 +1,1 @@
-# broker-skill
+# Stock skill for alexa
