@@ -1,24 +1,14 @@
 /**
-    Copyright 2014-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-    Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
-        http://aws.amazon.com/apache2.0/
-    or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-*/
-
-/**
- * This simple sample has no external dependencies or session management, and shows the most basic
- * example of how to create a Lambda function for handling Alexa Skill requests.
- *
- * Examples:
- * One-shot model:
- *  User: "Alexa, tell Hello World to say hello"
- *  Alexa: "Hello World!"
+ *  Broker skill for amazon Alexa
+ * 
+ * Author: Peer David
+ * Date: 23.12.2016
  */
 
 /**
  * App ID for the skill
  */
-var APP_ID = undefined; //replace with "amzn1.echo-sdk-ams.app.[your-unique-value-here]";
+var APP_ID = "amzn1.ask.skill.f3acff9f-f593-4793-9682-27b789533f6f";
 
 /**
  * The AlexaSkill prototype and helper functions
@@ -26,51 +16,80 @@ var APP_ID = undefined; //replace with "amzn1.echo-sdk-ams.app.[your-unique-valu
 var AlexaSkill = require('./AlexaSkill');
 
 /**
- * HelloWorld is a child of AlexaSkill.
  * To read more about inheritance in JavaScript, see the link below.
- *
  * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Introduction_to_Object-Oriented_JavaScript#Inheritance
  */
-var HelloWorld = function () {
+var Broker = function () {
     AlexaSkill.call(this, APP_ID);
 };
 
 // Extend AlexaSkill
-HelloWorld.prototype = Object.create(AlexaSkill.prototype);
-HelloWorld.prototype.constructor = HelloWorld;
+Broker.prototype = Object.create(AlexaSkill.prototype);
+Broker.prototype.constructor = Broker;
 
-HelloWorld.prototype.eventHandlers.onSessionStarted = function (sessionStartedRequest, session) {
+
+Broker.prototype.eventHandlers.onSessionStarted = function (sessionStartedRequest, session) {
     console.log("HelloWorld onSessionStarted requestId: " + sessionStartedRequest.requestId
         + ", sessionId: " + session.sessionId);
     // any initialization logic goes here
 };
 
-HelloWorld.prototype.eventHandlers.onLaunch = function (launchRequest, session, response) {
+
+Broker.prototype.eventHandlers.onLaunch = function (launchRequest, session, response) {
     console.log("HelloWorld onLaunch requestId: " + launchRequest.requestId + ", sessionId: " + session.sessionId);
-    var speechOutput = "Welcome to the Alexa Skills Kit, you can say hello";
-    var repromptText = "You can say hello";
+    var speechOutput = "Willkommen, dein Broker hilft der gerne weiter. Frage nach einem Aktienkurs.";
+    var repromptText = "Frage nach einem Aktienkurs.";
     response.ask(speechOutput, repromptText);
 };
 
-HelloWorld.prototype.eventHandlers.onSessionEnded = function (sessionEndedRequest, session) {
+
+Broker.prototype.eventHandlers.onSessionEnded = function (sessionEndedRequest, session) {
     console.log("HelloWorld onSessionEnded requestId: " + sessionEndedRequest.requestId
         + ", sessionId: " + session.sessionId);
     // any cleanup logic goes here
 };
 
-HelloWorld.prototype.intentHandlers = {
+
+Broker.prototype.intentHandlers = {
     // register custom intent handlers
-    "HelloWorldIntent": function (intent, session, response) {
-        response.tellWithCard("Hello World!", "Hello World", "Hello World!");
+    "BrokerIntent": function (intent, session, response) {
+
+        var stockSlot = intent.slots.Stock;
+
+        if(stockSlot && stockSlot.value){
+            stockValue = this.getStockInformation(stockSlot.value);
+            // tellWithCard(speechOutput, cardTitle, cardContent)
+            var speechOutput = "Die " + stockSlot.value + " aktie steht bei " + stockValue;
+            var cardTitle = stockSlot.value + " Stock";
+            var cardContent = stockValue;
+            response.tellWithCard(speechOutput, cardTitle, cardContent);
+        } else {
+            var speechOutput = "Frage nach einem Aktienkurs.";
+            var repromptText = "Frage nach einem Aktienkurs.";
+            response.ask(speechOutput, repromptText);
+        }
     },
+
     "AMAZON.HelpIntent": function (intent, session, response) {
         response.ask("You can say hello to me!", "You can say hello to me!");
     }
 };
 
+
+Broker.prototype.getStockInformation = function (stock) {
+    if(stock === "microsoft"){
+        return "54$";
+    } else if (stock === "google"){
+        return "100$"
+    }
+    
+    return "34 $";
+}
+
+
 // Create the handler that responds to the Alexa Request.
 exports.handler = function (event, context) {
     // Create an instance of the HelloWorld skill.
-    var helloWorld = new HelloWorld();
+    var helloWorld = new Broker();
     helloWorld.execute(event, context);
 };

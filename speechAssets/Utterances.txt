@@ -1,0 +1,3 @@
+BrokerIntent Wie steht die {Stock} aktie
+BrokerIntent Wie hoch ist die {Stock} aktie
+BrokerIntent Wie hoch ist der {Stock}

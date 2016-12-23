@@ -1,0 +1,16 @@
+{
+  "intents": [
+    {
+      "intent": "BrokerIntent",
+      "slots": [
+          {
+              "name": "Stock",
+              "type": "LIST_OF_STOCKS"
+          }
+      ]
+    },
+    {
+      "intent": "AMAZON.HelpIntent"
+    }
+  ]
+}
