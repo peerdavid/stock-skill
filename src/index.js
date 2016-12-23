@@ -106,9 +106,8 @@ Broker.prototype.handleStockValue = function (response, stockName) {
                                     " beträgt auf der Börse " + stockSymbol.exchDisp +
                                     stockInfos.LastTradePriceOnly + " " + stockCurrency + " . \n";
                 
-                var cardTitle = "Aktie: " + stockInfos.Name + "(" + stockSymbol.exchDisp + ") am " + 
-                                stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;
-                var cardContent = stockInfos.LastTradePriceOnly + " " + stockCurrency;
+                var cardTitle = "Aktie: " + stockInfos.Name + "(" + stockSymbol.exchDisp + ")";
+                var cardContent = stockInfos.LastTradePriceOnly + " " + stockCurrency + " am " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;;
                 response.tellWithCard(speechOutput, cardTitle, cardContent);
             }
 
@@ -117,9 +116,8 @@ Broker.prototype.handleStockValue = function (response, stockName) {
             var stockCurrency = self.convertToGermanCurrency(stockInfos.Currency);
             var speechOutput = "Auf der Börse " + stockSymbol.exchDisp + "beträgt der Wert der " + stockSymbol.typeDisp + " " 
                                 + stockInfos.Name + " " + stockBid + " " + stockCurrency + " . \n";
-            var cardTitle = "Aktie: " + stockInfos.Name + "(" + stockSymbol.exchDisp + ") am " + 
-                            stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;
-            var cardContent = stockBid + " " + stockInfos.Currency;
+            var cardTitle = "Aktie: " + stockInfos.Name + "(" + stockSymbol.exchDisp + ")";
+            var cardContent = stockInfos.LastTradePriceOnly + " " + stockCurrency + " am " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;
 
             response.tellWithCard(speechOutput, cardTitle, cardContent);
         }, onError);
