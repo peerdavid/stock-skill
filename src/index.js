@@ -71,8 +71,8 @@ Broker.prototype.intentHandlers = {
     },
 
     "GetNextStockIntent": function (intent, session, response) {
-        var speechOutput = "Welchen Aktienkurs möchten Sie wissen?";
-        var reprompText = "Welchen Aktienkurs möchten Sie wissen?";
+        var speechOutput = "Welchen Aktienkurs möchtest du wissen?";
+        var reprompText = "Welchen Aktienkurs möchtest du wissen?";
         response.ask(speechOutput, reprompText);
     },
 
@@ -216,15 +216,15 @@ function convertToGermanCurrency(currency){
 
 
 function askForFirstStock(response){
-    var speechOutput = "Mit Aktienkurs können Sie Informationen zum aktuellen Kurs einer Aktie abfragen. Welche Aktie sollte ich für Sie suchen?";
-    var reprompText = "Welchen Aktienkurs möchten Sie wissen?";
+    var speechOutput = "Mit Aktienkurs kannst du Informationen zum aktuellen Kurs einer Aktie abfragen. Welche Aktie sollte ich für dich suchen?";
+    var reprompText = "Welchen Aktienkurs möchtest du wissen?";
     response.ask(speechOutput, reprompText);
 }
 
 
 function tellInfosAndAskForNextStock(response, speechOutput, cardTitle, cardContent){
-    var speechOutput = speechOutput + ".\n Möchten Sie den Kurs einer weiteren Aktie wissen?";
-    var reprompText = "Welchen Aktienkurs möchten Sie wissen?";
+    var speechOutput = speechOutput + ".\n Möchtest du den Kurs einer weiteren Aktie wissen?";
+    var reprompText = "Welchen Aktienkurs möchtest du wissen?";
     response.askWithCard(speechOutput, reprompText, cardTitle, cardContent);
 }
 
