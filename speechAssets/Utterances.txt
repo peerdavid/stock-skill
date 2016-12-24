@@ -1,5 +1,7 @@
 GetFirstSockIntent Ich möchte aktienkurse wissen
-GetFirstSockIntent Wie hoch ist der Kurs von {Stock}
+GetFirstSockIntent wie hoch der Kurs von {Stock} ist
+GetFirstSockIntent nach {Stock}
+GetFirstSockIntent über {Stock}
 GetFirstSockIntent {Stock} Aktie
 GetFirstSockIntent Aktie {Stock}
 GetFirstSockIntent {Stock}
