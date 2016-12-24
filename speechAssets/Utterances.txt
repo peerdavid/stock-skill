@@ -1,4 +1,15 @@
-BrokerIntent nach dem {Stock} Kurs
-BrokerIntent nach der {Stock} Aktie
-BrokerIntent {Stock} Aktie
-BrokerIntent {Stock}
+GetFirstSockIntent Ich möchte aktienkurse wissen
+GetFirstSockIntent Wie hoch ist der Kurs von {Stock}
+GetFirstSockIntent {Stock} Aktie
+GetFirstSockIntent Aktie {Stock}
+GetFirstSockIntent {Stock}
+
+GetNextStockIntent ja
+GetNextStockIntent ja bitte
+GetNextStockIntent gerne
+GetNextStockIntent natürlich
+
+AMAZON.StopIntent nein
+AMAZON.StopIntent nein danke
+AMAZON.StopIntent stop
+AMAZON.StopIntent beenden

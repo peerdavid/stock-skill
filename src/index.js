@@ -40,7 +40,7 @@ Broker.prototype.eventHandlers.onSessionStarted = function (sessionStartedReques
 
 Broker.prototype.eventHandlers.onLaunch = function (launchRequest, session, response) {
     console.log("Broker onLaunch requestId: " + launchRequest.requestId + ", sessionId: " + session.sessionId);
-    response.tell("Frage den broker nach einem Aktien kurs.");
+    askForFirstStock(response);
 };
 
 
@@ -52,7 +52,7 @@ Broker.prototype.eventHandlers.onSessionEnded = function (sessionEndedRequest, s
 
 
 Broker.prototype.intentHandlers = {
-    "BrokerIntent": function (intent, session, response) {
+    "GetFirstSockIntent": function (intent, session, response) {
 
         var stockSlot = intent.slots.Stock;
 
@@ -60,23 +60,37 @@ Broker.prototype.intentHandlers = {
             // Sometimes alexa hears I. B. M -> so we parse ALL of it before we use it...
             var stockName = stockSlot.value.toString().split(". ").join("");
 
-            // We also remove all . -> it is not needed to find a stock
+            // We also remove all . -> it is not needed to find a stock via yahoo finance api
             stockName = stockName.split(".").join(" ");
 
             // Search for it now
-            this.handleStockValue(response, stockName);
+            this.searchStockInfos(response, stockName);
         } else {
-            response.tell("Frage nach einem Aktienkurs.");
+            askForFirstStock(response);
         }
     },
 
+    "GetNextStockIntent": function (intent, session, response) {
+        var speechOutput = "Welchen Aktienkurs möchten Sie wissen?";
+        var reprompText = "Welchen Aktienkurs möchten Sie wissen?";
+        response.ask(speechOutput, reprompText);
+    },
+
     "AMAZON.HelpIntent": function (intent, session, response) {
-        response.tell("Frage den broker nach einem Aktien kurs.");
+        askForFirstStock(response);
+    },
+
+    "AMAZON.StopIntent": function (intent, session, response) {
+        response.tell("Servus und bis zum nächsten mal.");
+    },
+
+    "AMAZON.CancelIntent": function (intent, session, response) {
+        response.tell("Servus und bis zum nächsten mal.");
     }
 };
 
 
-Broker.prototype.handleStockValue = function (response, stockName) {
+Broker.prototype.searchStockInfos = function (response, stockName) {
     var onError = function(err){
         response.tell("Ich konnte keine Informationen für " + stockName + " finden.");
     };
@@ -89,7 +103,7 @@ Broker.prototype.handleStockValue = function (response, stockName) {
         }
 
         // Possible we have fonds etc.
-        symbols = self.filterStockOnly(symbols);
+        symbols = filterStockOnly(symbols);
         if(symbols.length <= 0){
             onError("No symbol found for stock " + stockName);
             return;
@@ -97,58 +111,20 @@ Broker.prototype.handleStockValue = function (response, stockName) {
 
         var exchPrefers = ["NASDAQ", "NYSE", "LSE", "Euronext", "XETRA", "Frankfurt", "Hamburg", "Stuttgart", "Wien", 
                            "Berlin", "Schweiz", "CME", "TSE", "AEX", "AMEX", "SSE", "CBOT"];
-        var stockSymbol = self.findPreferedSymbol(symbols, exchPrefers);
+        var stockSymbol = findPreferedSymbol(symbols, exchPrefers);
 
         self.lookupStockInfos(stockSymbol.symbol, function(stockInfos) {
-            if(stockInfos.Bid == null){
-                var stockLastTradingPrice = self.convertToGermanNumber(stockInfos.LastTradePriceOnly);
-                var stockCurrency = self.convertToGermanCurrency(stockInfos.Currency);
-                var speechOutput = "Der letzte trading Wert der " + stockSymbol.typeDisp + " " + stockInfos.Name +
-                                    " vom " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime + 
-                                    " beträgt auf der Börse " + stockSymbol.exchDisp +
-                                    stockLastTradingPrice + " " + stockCurrency + " . \n";
-                
-                var cardTitle = "Aktie: " + stockInfos.Name + "(" + stockSymbol.exchDisp + ")";
-                var cardContent = stockLastTradingPrice + " " + stockCurrency + " am " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;;
-                response.tellWithCard(speechOutput, cardTitle, cardContent);
-            }
-
-            // Return bid information
-            var stockBid = self.convertToGermanNumber(stockInfos.Bid);
-            var stockCurrency = self.convertToGermanCurrency(stockInfos.Currency);
+            // Return informations of stock
+            var stockLastTradingPrice = convertToGermanNumber(stockInfos.LastTradePriceOnly);
+            var stockCurrency = convertToGermanCurrency(stockInfos.Currency);
             var speechOutput = "Auf der Börse " + stockSymbol.exchDisp + "beträgt der Wert der " + stockSymbol.typeDisp + " " 
-                                + stockInfos.Name + " " + stockBid + " " + stockCurrency + " . \n";
-            var cardTitle = "Aktie: " + stockInfos.Name + "(" + stockSymbol.exchDisp + ")";
-            var cardContent = stockBid + " " + stockCurrency + " am " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;
+                                + stockInfos.Name + " " + stockLastTradingPrice + " " + stockCurrency + " . \n";
+            var cardTitle = stockSymbol.typeDisp + ": " + stockInfos.Name + "(" + stockSymbol.exchDisp + ")";
+            var cardContent = stockLastTradingPrice + " " + stockCurrency + " am " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;
 
-            response.tellWithCard(speechOutput, cardTitle, cardContent);
+            tellInfosAndAskForNextStock(response, speechOutput, cardTitle, cardContent);
         }, onError);
     }, onError);
-}
-
-
-Broker.prototype.findPreferedSymbol = function(symbols, exchPrefers){
-    for(var i = 0; i < exchPrefers.length; i++){
-        for(var j=0; j < symbols.length; j++){
-            if(exchPrefers[i].toLowerCase() == symbols[j].exchDisp.toLowerCase()){
-                return symbols[j];
-            }
-        }
-    }
-
-    return symbols[0];
-}
-
-
-Broker.prototype.filterStockOnly = function(symbols){
-    var ret = []
-    for(var i = 0; i < symbols.length; i++){
-        if(symbols[i].typeDisp.toLowerCase() == "aktie"){
-            ret.push(symbols[i]);
-        }
-    }
-
-    return ret;
 }
 
 
@@ -198,12 +174,37 @@ Broker.prototype.lookupStockInfos = function(stockSymbol, onResult, onError){
 }
 
 
-Broker.prototype.convertToGermanNumber = function(num){
+function findPreferedSymbol (symbols, exchPrefers){
+    for(var i = 0; i < exchPrefers.length; i++){
+        for(var j=0; j < symbols.length; j++){
+            if(exchPrefers[i].toLowerCase() == symbols[j].exchDisp.toLowerCase()){
+                return symbols[j];
+            }
+        }
+    }
+
+    return symbols[0];
+}
+
+
+function filterStockOnly (symbols){
+    var ret = []
+    for(var i = 0; i < symbols.length; i++){
+        if(symbols[i].typeDisp.toLowerCase() == "aktie"){
+            ret.push(symbols[i]);
+        }
+    }
+
+    return ret;
+}
+
+
+function convertToGermanNumber (num){
     return parseFloat(num).toFixed(2).toString().replace(".", ",");
 }
 
 
-Broker.prototype.convertToGermanCurrency = function(currency){
+function convertToGermanCurrency(currency){
     if(currency.toLowerCase() == "usd"){
         return "$";
     } else if(currency.toLowerCase() == "eur"){
@@ -211,6 +212,20 @@ Broker.prototype.convertToGermanCurrency = function(currency){
     }
 
     return currency;
+}
+
+
+function askForFirstStock(response){
+    var speechOutput = "Mit Aktienkurs können Sie Informationen zum aktuellen Kurs einer Aktie abfragen. Welche Aktie sollte ich für Sie suchen?";
+    var reprompText = "Welchen Aktienkurs möchten Sie wissen?";
+    response.ask(speechOutput, reprompText);
+}
+
+
+function tellInfosAndAskForNextStock(response, speechOutput, cardTitle, cardContent){
+    var speechOutput = speechOutput + ".\n Möchten Sie den Kurs einer weiteren Aktie wissen?";
+    var reprompText = "Welchen Aktienkurs möchten Sie wissen?";
+    response.askWithCard(speechOutput, reprompText, cardTitle, cardContent);
 }
 
 
