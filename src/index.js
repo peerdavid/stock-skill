@@ -1,10 +1,9 @@
 /**
- *  Broker skill for amazon Alexa
+ *  Broker skill for amazon Alexa 
  * 
  * Author: Peer David
  * Date: 23.12.2016
- * 
- * Note: To download names of companies by industry:
+ * Note: Call "Alexa, öffne Aktienkurs"
  */
 
 /**
@@ -117,11 +116,13 @@ Broker.prototype.searchStockInfos = function (response, stockName) {
             // Return informations of stock
             var stockLastTradingPrice = convertToGermanNumber(stockInfos.LastTradePriceOnly);
             var stockCurrency = convertToGermanCurrency(stockInfos.Currency);
+            var stockChange = stockInfos.PercentChange.toString().replace(".", ",");
+
             var speechOutput = "Auf der Börse " + stockSymbol.exchDisp + "beträgt der Wert der " + stockSymbol.typeDisp + " " 
-                                + stockInfos.Name + " " + stockLastTradingPrice + " " + stockCurrency + " . \n";
+                                + stockInfos.Name + " " + stockLastTradingPrice + " " + stockCurrency + " . \n" + 
+                                "Die Veränderung der Aktie beträgt " + stockChange + ". \n";
             var cardTitle = stockSymbol.typeDisp + ": " + stockInfos.Name + "(" + stockSymbol.exchDisp + ")";
             var cardContent = stockLastTradingPrice + " " + stockCurrency + " am " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;
-
             tellInfosAndAskForNextStock(response, speechOutput, cardTitle, cardContent);
         }, onError);
     }, onError);
