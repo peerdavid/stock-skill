@@ -116,13 +116,13 @@ Broker.prototype.searchStockInfos = function (response, stockName) {
             // Return informations of stock
             var stockLastTradingPrice = convertToGermanNumber(stockInfos.LastTradePriceOnly);
             var stockCurrency = convertToGermanCurrency(stockInfos.Currency);
-            var stockChange = stockInfos.PercentChange.toString().replace(".", ",");
+            var stockChange = stockInfos.PercentChange.replace(".", ",");
 
-            var speechOutput = "Auf der Börse " + stockSymbol.exchDisp + "beträgt der Wert der " + stockSymbol.typeDisp + " " 
-                                + stockInfos.Name + " " + stockLastTradingPrice + " " + stockCurrency + " . \n" + 
+            var speechOutput = "Auf der Börse " + stockSymbol.exchDisp + "beträgt der Wert der " + stockSymbol.typeDisp + " " +
+                                stockInfos.Name + " " + stockLastTradingPrice + " " + stockCurrency + " . \n" + 
                                 "Die Veränderung der Aktie beträgt " + stockChange + ". \n";
             var cardTitle = stockSymbol.typeDisp + ": " + stockInfos.Name + "(" + stockSymbol.exchDisp + ")";
-            var cardContent = stockLastTradingPrice + " " + stockCurrency + " am " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;
+            var cardContent = stockLastTradingPrice + stockCurrency + " (" + stockChange + ") " + " am " + stockInfos.LastTradeDate + " um " + stockInfos.LastTradeTime;
             tellInfosAndAskForNextStock(response, speechOutput, cardTitle, cardContent);
         }, onError);
     }, onError);
