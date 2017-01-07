@@ -18,4 +18,5 @@ Alexa, frage Aktienkurs nach Amazon.<br />
 5. Set an Invocation Name (To use it in the same way as the example above, set it to "Aktienkurs")
 6. Copy IntentSchema.json, LIST_OF_STOCKS and Utterances.txt and paste it into the Interaction Model of your skill.
 7. Set the AWS Lambda ARN (AwsConsole/Lambda/Functions/<YourFunctionName> -> Right upper corner)
+8. Go back to your lambda function and create the environment Variable APP_ID with the id of your skill (amzn1.ask.skill.GUID) or set the APP_ID in index.js to null
 8. Finished

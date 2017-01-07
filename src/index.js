@@ -9,7 +9,7 @@
 /**
  * App ID for the skill
  */
-var APP_ID = "amzn1.ask.skill.f3acff9f-f593-4793-9682-27b789533f6f";
+var APP_ID = process.env.APP_ID;    // Set to null if you dont care, which skill queries your lambda funciton
 
 /**
  * The AlexaSkill prototype and helper functions
