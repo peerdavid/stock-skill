@@ -6,7 +6,7 @@ Alexa, öffne Aktienkurs<br />
 <i>Welche Aktie sollte ich für dich suchen?</i><br />
 Amazon<br />
 <i>Der Wert der Aktie Amazon beträgt auf der Börse ...</i><br />
-<br /><br />
+<br />
 Alexa, frage Aktienkurs nach Amazon<br />
 <i>Der Wert der Aktie Amazon beträgt auf der Börse ...</i><br />
 
