@@ -16,6 +16,6 @@ Alexa, frage Aktienkurs nach Amazon.<br />
 3. Upload deploy.zip to your lambda function (build with deploy.sh if you change anything)
 4. Create a new Alexa Skill (Type = Custom)
 5. Set an Invocation Name (To use it in the same way as the example above, set it to "Aktienkurs")
-6. Copy IntentSchema.json, SlotType.txt and Utterances.txt and paste it into the Interaction Model.
+6. Copy IntentSchema.json, LIST_OF_STOCKS.txt and Utterances.txt and paste it into the Interaction Model.
 7. Set the AWS Lambda ARN (AwsConsole/Lambda/Functions/<YourFunctionName> -> Right upper corner)
 8. Finished
