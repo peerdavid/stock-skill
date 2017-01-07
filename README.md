@@ -19,6 +19,3 @@ Alexa, frage Aktienkurs nach Amazon<br />
 6. Copy IntentSchema.json, SlotType.txt and Utterances.txt and paste it into the Interaction Model.
 7. Set the AWS Lambda ARN (AwsConsole/Lambda/Functions/<YourFunctionName> -> Right upper corner)
 8. Finished
-
-# LICENSE
-GNU GENERAL PUBLIC LICENSE Version 3
